@@ -11,6 +11,18 @@ POST    /formapp/register/gender    controllers.formapp.FormappController.regist
 POST    /formapp/register/message   controllers.formapp.FormappController.registerMessage
 POST    /formapp/register/confirm   controllers.formapp.FormappController.confirm
 GET     /formapp                    controllers.Default.redirect(to = "/formapp/messages")
+GET     /formapp/login              controllers.formapp.FormappController.login
+POST     /formapp/room    					controllers.formapp.FormappController.room
+GET     /formapp/room    					  controllers.formapp.FormappController.room
+POST     /formapp/registerAccount   controllers.formapp.FormappController.registerAccount
+GET     /formapp/task_register    	controllers.formapp.FormappController.taskRegister
+POST     /formapp/task_confirm   	  controllers.formapp.FormappController.taskConfirm
+POST     /formapp/confirmed   	  controllers.formapp.FormappController.confirmed
+POST     /formapp/try_login   	  controllers.formapp.FormappController.tryLogin
+GET     /formapp/try_login   	  controllers.formapp.FormappController.room
+GET     /formapp/task/:task_id       controllers.formapp.FormappController.taskEntry(task_id: String)
+GET     /formapp/task/change_state/:task_id       controllers.formapp.FormappController.changeTaskState(task_id: String)
+GET			/formapp/withdrawal			controllers.formapp.FormappController.withdraw
 
 # Resources
 GET     /robot.txt                  controllers.Default.notFound
