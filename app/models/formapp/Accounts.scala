@@ -7,7 +7,7 @@ import play.api.db.slick.{DatabaseConfigProvider => DBConfigProvider}
 import scala.concurrent.ExecutionContext
 
 /**
-  * enquete dao
+  * account dao
   */
 @Singleton
 class Accounts @Inject()(dbcp: DBConfigProvider)(implicit ec: ExecutionContext) extends Dao(dbcp) {
@@ -15,26 +15,64 @@ class Accounts @Inject()(dbcp: DBConfigProvider)(implicit ec: ExecutionContext) 
   import profile.api._
   import utility.Await
 
-  val table         = "enquete"
+  val table = "account"
 
-  def list: Seq[Enquete] = Await.result(
-    db.run(sql"SELECT id, name, gender, message, created_at FROM #$table ORDER BY id".as[Enquete])
+  def list: Seq[Account] = Await.result(
+    db.run(sql"SELECT id, account_id, user_name, account_password FROM #$table ORDER BY id".as[Account])
   )
 
-  def findByID(id: Int): Option[Enquete] = Await.result(
-    db.run(sql"SELECT id, name, gender, message, created_at FROM #$table WHERE id=#$id".as[Enquete].headOption)
+  def findByID(id: Int): Option[Account] = Await.result(
+    db.run(sql"SELECT id, account_id, user_name, account_password FROM #$table WHERE id=#$id".as[Account].headOption)
   )
 
-  def save(enquete: Enquete): Int = enquete match {
-    case Enquete(0, name, gender, message, _) =>
-      print("何か")
+  def getPassByAccountId(account_id: String) = Await.result(
+    db.run(sql"SELECT account_password FROM #$table WHERE account_id='#$account_id'".as[String].headOption)
+  )
+
+  //登録のみ
+  def save(account: Account): Int = account match {
+    case Account(_, account_id, user_name, account_password, _, _) =>
       Await.result(
-        db.run(sqlu"INSERT INTO #$table (name, gender, message) VALUES ('#$name', '#$gender', '#$message')")
-      )
-    case Enquete(id, name, gender, message, _) =>
-      Await.result(
-        db.run(sqlu"UPDATE #$table SET name=#$name, gender=#$gender, message=#$message WHERE id = #$id")
+        db.run(
+          sqlu"INSERT INTO #$table (account_id, user_name, account_password) VALUES ('#$account_id', '#$user_name', '#$account_password')"
+        )
       )
   }
+
+  //発行されたsession_idをデータベースに更新
+  def updateSessionID(account_id: String, session_id: String) {
+    val date                          = new java.util.Date()
+    val timestamp: java.sql.Timestamp = new java.sql.Timestamp(new org.joda.time.DateTime(date).getMillis)
+    Await.result(
+      db.run(
+        sqlu"UPDATE #$table SET session_id='#$session_id', session_timestamp='#${timestamp}' WHERE account_id='#$account_id'"
+      )
+    )
+  }
+
+  def getAccountIdBySessionId(session_id: String) = Await.result(
+    db.run(sql"SELECT account_id FROM #$table WHERE session_id='#$session_id'".as[String].headOption)
+  )
+
+  //パスワードの変更
+  def updatePass(account: Account): Int = account match {
+    case Account(_, account_id, _, account_password, _, _) =>
+      Await.result(
+        db.run(sqlu"UPDATE #$table SET account_password=#$account_password WHERE account_id = #$account_id")
+      )
+  }
+
+  //ユーザー名の変更
+  def updateUserName(account: Account): Int = account match {
+    case Account(_, account_id, user_name, _, _, _) =>
+      Await.result(
+        db.run(sqlu"UPDATE #$table SET user_name=#$user_name WHERE account_id = #$account_id")
+      )
+  }
+
+  //ユーザの退会
+  def delete(accoun_id: String) = Await.result(
+    db.run(sql"DELETE FROM #$table WHERE account_id='#$account_id'")
+  )
 
 }

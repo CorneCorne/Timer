@@ -15,54 +15,53 @@ class Tasks @Inject()(dbcp: DBConfigProvider)(implicit ec: ExecutionContext) ext
   import profile.api._
   import utility.Await
 
-  val table = "account"
+  val table = "task"
 
-  def list: Seq[Account] = Await.result(
-    db.run(sql"SELECT id, account_id, user_name, account_password FROM #$table ORDER BY id".as[Account])
+  //case class Task(id: Int, account_id: String, task_name: String, status: String, createdAt: Timestamp)
+
+  def list: Seq[Task] = Await.result(
+    db.run(sql"SELECT id, task_id,account_id, title,description, is_done, created_At FROM #$table ORDER BY id".as[Task])
   )
 
-  def findByID(id: Int): Option[Account] = Await.result(
-    db.run(sql"SELECT id, account_id, user_name, account_password FROM #$table WHERE id=#$id".as[Account].headOption)
+  def getListByAccountId(account_id: String): Seq[Task] = Await.result(
+    db.run(
+      sql"SELECT id , task_id, account_id, title,description, is_done, created_At FROM #$table WHERE account_id='#$account_id' ORDER BY id"
+        .as[Task]
+    )
   )
 
-  def getPassByAccountId(account_id: String) = Await.result(
-    db.run(sql"SELECT account_password FROM #$table WHERE account_id=#$account_id".as[String].headOption)
+  def getTaskByTaskId(task_id: String): Option[Task] = Await.result(
+    db.run(
+      sql"SELECT id,task_id, account_id, title,description, is_done, created_At FROM #$table WHERE task_id='#$task_id'"
+        .as[Task]
+        .headOption
+    )
+  )
+
+  def findByID(id: Int): Option[Task] = Await.result(
+    db.run(
+      sql"SELECT id, account_id, title,description, is_done, created_At FROM #$table WHERE id=#$id".as[Task].headOption
+    )
   )
 
   //登録のみ
-  def save(account: Account): Int = account match {
-    case Account(0, account_id, user_name, account_password, _) =>
+  def save(task: Task): Int = task match {
+    case Task(0, _, account_id, title, description, _, _) =>
+      val task_id: String = scala.util.Random.alphanumeric.take(32).mkString
       Await.result(
         db.run(
-          sqlu"INSERT INTO #$table (account_id, user_name, account_password) VALUES ('#$account_id', '#$user_name', '#$account_password')"
+          sqlu"INSERT INTO #$table (task_id,account_id, title,description, is_done) VALUES ('#$task_id','#$account_id', '#$title', '#$description',false)"
         )
       )
-  }
-
-  
-
-  //発行されたsession_idをデータベースに更新
-  def updateSessionID(account_id: String,session_id: String): Int = account match {
-    case Account(0, account_id, _, _, session_id) =>
+    case Task(id, _, _, title, description, is_done, _) =>
       Await.result(
-        db.run(sqlu"UPDATE #$table SET session_id=#$session_id WHERE account_id = #$account_id")
+        db.run(sqlu"UPDATE #$table SET title='#$title', description='#$description' ,is_done=#$is_done WHERE id = #$id")
       )
   }
 
-  //パスワードの変更
-  def updatePass(account: Account): Int = account match {
-    case Account(0, account_id, _, account_password, _) =>
-      Await.result(
-        db.run(sqlu"UPDATE #$table SET account_password=#$account_password WHERE account_id = #$account_id")
-      )
-  }
-
-  //ユーザー名の変更
-  def updatePass(account: Account): Int = account match {
-    case Account(0, account_id, user_name, _, _) =>
-      Await.result(
-        db.run(sqlu"UPDATE #$table SET user_name=#$user_name WHERE account_id = #$account_id")
-      )
-  }
+  //ユーザの退会時、タスクも全て消す
+  def delete(accoun_id: String) = Await.result(
+    db.run(sql"DELETE FROM #$table WHERE account_id='#$account_id'")
+  )
 
 }
