@@ -3,8 +3,8 @@
 @import helper._
 
 
-@register("アカウント新規登録", "/formapp/register/registerAccount") {
-@CSRF.formField
-<input type="text" name="name" value="name">
-<input type="text" name="password" value="password">
+@views.html.formapp.main("登録完了") {
+
+<a href="/formapp/room">部屋に行く</a>
+
 }

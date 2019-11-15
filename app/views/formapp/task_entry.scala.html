@@ -1,10 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+@(task: models.formapp.Task)
 
-</body>
-</html>
+@views.html.formapp.main("登録済みメッセージ") {
+<table class="w3-table">
+    <tr>
+        <th>タイトル名</th>
+        <td>@task.title</td>
+    </tr>
+    <tr>
+        <th>説明</th>
+        <td>@task.description</td>
+    </tr>
+    <tr>
+        <th>状態</th>
+        <td>@if(task.is_done){完了}else{未完了}</td>
+    </tr>
+    <tr>
+        <th>投稿日時</th>
+        <td>@task.createdAt</td>
+    </tr>
+</table>
+<a href="/formapp/room">戻る</a>
+}

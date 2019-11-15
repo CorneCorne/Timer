@@ -1,10 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+@(task: models.formapp.Task)(implicit request: RequestHeader)
 
-</body>
-</html>
+@import helper._
+
+@views.html.formapp.main("確認画面") {
+<dl>
+    <dt>タスク名</dt>
+    <dd>@task.title</dd>
+    <dt>タスク説明</dt>
+    <dd>@task.description</dd>
+    <dt>状態</dt>
+    <dd>@if(task.is_done){完了}else{未完了}</dd>
+</dl>
+<p>以上の内容で登録します</p>
+<form action="/formapp/confirmed" method="POST">
+    @CSRF.formField
+    <input type="submit" value="OK">
+</form>
+}

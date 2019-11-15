@@ -1,10 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+@(implicit request: RequestHeader)
 
-</body>
-</html>
+@import helper._
+
+@views.html.formapp.main("ログイン") {
+
+<h3>タスク登録</h3>
+<form action="/formapp/task_confirm" method="POST">
+    @CSRF.formField
+    <input type="text" name="title" placeholder="title">
+    <input type="text" name="description" placeholder="description">
+    <br><br>
+    <input type="radio" name="is_done" value="not_done" checked required>未完了</input>
+    <input type="radio" name="is_done" value="done" required>完了</input>
+    <br>
+    <br><br>
+    <input type="submit" value="登録">
+</form>
+}

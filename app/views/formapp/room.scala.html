@@ -1,10 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+@(tasks: Seq[models.formapp.Task])
 
-</body>
-</html>
+@import helper._
+@import views.html.formapp.list
+
+
+
+@entryRow(entry: models.formapp.Task, num :Int) = {
+<tr id="@entry.task_id">
+    <td><a href="/formapp/task/@entry.task_id">@num</a></td>
+    <td class="name">@entry.title</td>
+    <td class="gender"><a href="/formapp/task/change_state/@entry.task_id">@if(entry.is_done){完了}else{未完了}</a></td>
+    <td class="date">@entry.description</td>
+    <td class="date">@entry.createdAt</td>
+</tr>
+}
+
+
+
+@views.html.formapp.main("") {
+<div class="w3-row">
+    <div class="w3-half">
+        <h3>登録済みタスク</h3>
+    </div>
+    <div class="w3-right">
+        <a href="/formapp/task_register"><span class="w3-button w3-green">新規入力</span></a>
+    </div>
+</div>
+@if(tasks.nonEmpty) {
+<table id="formapp-message-list" class="w3-table w3-striped w3-border">
+    <tr>
+        <th></th>
+        <th>タスク名</th>
+        <th>状態</th>
+        <th>説明</th>
+        <th>作成日時</th>
+    </tr>
+
+
+    @for((obj,i) <- tasks.zipWithIndex) {
+    @entryRow(obj,i)
+    }
+
+
+
+</table>
+} else {
+<p>登録されたメッセージはありません</p>
+}
+}
+
