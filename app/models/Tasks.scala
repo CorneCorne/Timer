@@ -17,9 +17,9 @@ class Tasks @Inject()(dbcp: DBConfigProvider)(implicit ec: ExecutionContext) ext
   val table = "task"
 
   /**
-   * DB上に保存されている全てのタスクを取得する
-   * @return
-   */
+    * DB上に保存されている全てのタスクを取得する
+    * @return
+    */
   def list: Seq[Task] = Await.result(
     db.run(sql"SELECT id, title, description, is_done, created_at FROM #$table".as[Task])
   )

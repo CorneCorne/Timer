@@ -1,0 +1,10 @@
+@(implicit request: RequestHeader)
+
+@import helper._
+
+
+@register("アカウント新規登録", "/formapp/register/registerAccount") {
+@CSRF.formField
+<input type="text" name="name" value="name">
+<input type="text" name="password" value="password">
+}

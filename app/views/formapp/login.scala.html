@@ -1,0 +1,22 @@
+@(implicit request: RequestHeader)
+
+@import helper._
+
+@views.html.formapp.main("ログイン") {
+<h3>ログインして</h3>
+
+<form action="room" method="POST">
+    <input type="text" name="name" placeholder="name">
+    <input type="text" name="password" placeholder="password">
+    <input type="submit" value="login">
+</form>
+<h4>アカウントを持っていない場合</h4>
+<form action="registerAccount" method="POST">
+    <input type="text" name="name" placeholder="name">
+    <input type="text" name="id" placeholder="id">
+    <input type="text" name="password" placeholder="password">
+    <input type="submit" value="登録">
+</form>
+}
+
+
