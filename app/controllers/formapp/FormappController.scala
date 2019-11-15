@@ -86,8 +86,9 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
       id    <- param.get("id").flatMap(_.headOption)
       pass  <- param.get("password").flatMap(_.headOption)
     } yield {
-      val pass_res4: String = new String(MessageDigest.getInstance("SHA-256").digest(pass.getBytes("UTF-8")))
-      val account           = Account(id, name, pass_res4)
+      val pass_res4: String =
+        String.format("%032x", new BigInteger(1, MessageDigest.getInstance("SHA-256").digest(pass.getBytes("UTF-8"))))
+      val account = Account(id, name, pass_res4)
       accounts.getPassByAccountId(id) match {
         case Some(e) => Ok(views.html.formapp.login(request)) //存在すると困る
         case None => {
@@ -110,7 +111,8 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
       id    <- param.get("id").flatMap(_.headOption)
       pass  <- param.get("password").flatMap(_.headOption)
     } yield {
-      val pass_res4: String = new String(MessageDigest.getInstance("SHA-256").digest(pass.getBytes("UTF-8")))
+      val pass_res4: String =
+        String.format("%032x", new BigInteger(1, MessageDigest.getInstance("SHA-256").digest(pass.getBytes("UTF-8"))))
       accounts.getPassByAccountId(id) match {
         case Some(e) => {
           if (pass_res4.equals(e)) {
@@ -253,18 +255,18 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
     }
   }
 
-  def changeTaskState(task_id: String) = Action { request =>
-    {
-      val session_id: String = request.cookies.get("session-id").map(_.value).getOrElse("")
-      accounts.getAccountIdBySessionId(session_id) match {
-        case None        => Ok(views.html.formapp.login(request))
-        case Some(value) =>
-        {
-          accounts.delete(account_id)
-          tasks.delete(account_id)
-        }
+  def withdraw = Action { request =>
+    val session_id: String = request.cookies.get("session-id").map(_.value).getOrElse("")
+    accounts.getAccountIdBySessionId(session_id) match {
+      case None => Ok(views.html.formapp.login(request))
+      case Some(value) => {
+        accounts.delete(value)
+        tasks.delete(value)
+        Ok(views.html.formapp.login(request))
       }
+
     }
+
   }
 
 }
