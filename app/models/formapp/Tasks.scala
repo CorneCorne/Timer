@@ -60,8 +60,8 @@ class Tasks @Inject()(dbcp: DBConfigProvider)(implicit ec: ExecutionContext) ext
   }
 
   //ユーザの退会時、タスクも全て消す
-  def delete(accoun_id: String) = Await.result(
-    db.run(sql"DELETE FROM #$table WHERE account_id='#$account_id'")
+  def delete(account_id: String) = Await.result(
+    db.run(sqlu"DELETE FROM #$table WHERE account_id='#$account_id'")
   )
 
 }
