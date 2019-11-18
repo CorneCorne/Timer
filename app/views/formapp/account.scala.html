@@ -1,0 +1,26 @@
+@(acc :models.formapp.Account)(implicit request: RequestHeader)
+
+@import helper._
+
+@views.html.formapp.main("アカウント情報") {
+<dl>
+    <dt>名前</dt>
+    <dd>@acc.user_name</dd>
+    <dt>id</dt>
+    <dd>@acc.account_id</dd>
+</dl>
+<form action="/formapp/account/change_pass" method="POST">
+    @CSRF.formField
+    <input type="text" name="old_password" placeholder="現在のパスワード">
+    <input type="text" name="new_password1" placeholder="新しいパスワード">
+    <input type="text" name="new_password2" placeholder="再入力">
+    <input type="submit" value="変更">
+</form>
+<br><br><br><br>
+<div><a href="/formapp/account/logout">ログアウトする</a><div>
+    <div><a href="/formapp/account/withdrawal">退会申請</a><div>
+
+
+}
+
+

@@ -1,10 +1,11 @@
-@(implicit request: RequestHeader)
+@(some_string :String)(implicit request: RequestHeader)
 
 @import helper._
 
 @views.html.formapp.main("ログイン") {
 
-<h3>ログインして</h3>
+<h3>ログイン</h3>
+<h3>@some_string</h3>
 
 <form action="/formapp/try_login" method="POST">
     @CSRF.formField
