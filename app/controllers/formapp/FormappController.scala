@@ -90,7 +90,7 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
         String.format("%032x", new BigInteger(1, MessageDigest.getInstance("SHA-256").digest(pass.getBytes("UTF-8"))))
       val account = Account(id, name, pass_res4)
       accounts.getPassByAccountId(id) match {
-        case Some(e) => Ok(views.html.formapp.login(request)) //存在すると困る
+        case Some(e) => Ok(views.html.formapp.login("登録済みidです")(request)) //存在すると困る
         case None => {
           accounts.save(account)
 
@@ -124,12 +124,12 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
             Ok(views.html.formapp.room(entries)).withCookies(Cookie("session-id", cookie))
           } else {
             //idは正しいがパスワードが違う
-            Ok(views.html.formapp.login(request))
+            Ok(views.html.formapp.login("入力情報に誤りがあります")(request))
           }
         }
         case None => {
           //idがない
-          Ok(views.html.formapp.login(request))
+          Ok(views.html.formapp.login("入力情報に誤りがあります")(request))
         }
       }
       //Ok(views.html.formapp.registerAccount(request)).withSession(request.session)
@@ -139,7 +139,7 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
   def room = Action { request =>
     val session_id: String = request.cookies.get("session-id").map(_.value).getOrElse("")
     accounts.getAccountIdBySessionId(session_id) match {
-      case None => Ok(views.html.formapp.login(request))
+      case None => Ok(views.html.formapp.login("ログインしてください")(request))
       case Some(value) => {
         println("せっしょんあいでー")
         val entries = tasks.getListByAccountId(value)
@@ -151,7 +151,7 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
   }
 
   def login = Action { request =>
-    Ok(views.html.formapp.login(request)).withSession(request.session)
+    Ok(views.html.formapp.login("ログインしましょう")(request)).withSession(request.session)
   }
 
   def taskRegister = Action { request =>
@@ -187,7 +187,7 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
       accounts.getAccountIdBySessionId(session_id) match {
         case None => {
           println("失敗")
-          Ok(views.html.formapp.login(request))
+          Ok(views.html.formapp.login("ログインしていません")(request))
         }
         case Some(value) => {
           tasks.save(Task(value, title, description, is_done.equals("done")))
@@ -210,7 +210,7 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
         accounts.getAccountIdBySessionId(session_id) match {
           case None => {
             println("失敗")
-            Ok(views.html.formapp.login(request))
+            Ok(views.html.formapp.login("ログインしていません")(request))
           }
           case Some(value) => {
             //タスクを正に取得した
@@ -236,7 +236,7 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
         accounts.getAccountIdBySessionId(session_id) match {
           case None => {
             println("失敗")
-            Ok(views.html.formapp.login(request))
+            Ok(views.html.formapp.login("ログインしていません")(request))
           }
           case Some(value) => {
             //タスクを正に取得した
@@ -255,18 +255,73 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
     }
   }
 
+  def account = Action { request =>
+    val session_id: String = request.cookies.get("session-id").map(_.value).getOrElse("")
+    accounts.getAccountBySessionId(session_id) match {
+      case None => Ok(views.html.formapp.login("ログインしていません")(request))
+      case Some(value) => {
+        Ok(views.html.formapp.account(value)(request))
+      }
+    }
+  }
+
+  def change_pass = Action { request =>
+    (for {
+      param     <- request.body.asFormUrlEncoded
+      old_pass  <- param.get("old_password").flatMap(_.headOption)
+      new_pass1 <- param.get("new_password1").flatMap(_.headOption)
+      new_pass2 <- param.get("new_password2").flatMap(_.headOption)
+    } yield {
+      val pass_res4: String =
+        String
+          .format("%032x", new BigInteger(1, MessageDigest.getInstance("SHA-256").digest(old_pass.getBytes("UTF-8"))))
+      val session_id: String = request.cookies.get("session-id").map(_.value).getOrElse("")
+      accounts.getAccountBySessionId(session_id) match {
+        case None => Ok(views.html.formapp.login("ログインしてください")(request))
+        case Some(value) => {
+          if (new_pass1 != null && new_pass2 != null && new_pass1.equals(new_pass2) && pass_res4
+                .equals(value.account_password)) {
+            val new_pass_res4: String =
+              String.format(
+                "%032x",
+                new BigInteger(1, MessageDigest.getInstance("SHA-256").digest(new_pass1.getBytes("UTF-8")))
+              )
+            accounts.updatePass(Account(value.account_id, value.user_name, new_pass_res4))
+            Ok(views.html.formapp.account(value)(request))
+          } else {
+            Ok(views.html.formapp.login("にゃーん")(request))
+          }
+        }
+      }
+      //Ok(views.html.formapp.registerAccount(request)).withSession(request.session)
+    }).getOrElse[Result](Redirect("/formapp/login"))
+  }
+
   def withdraw = Action { request =>
     val session_id: String = request.cookies.get("session-id").map(_.value).getOrElse("")
     accounts.getAccountIdBySessionId(session_id) match {
-      case None => Ok(views.html.formapp.login(request))
+      case None => Ok(views.html.formapp.login("ログインしていません")(request))
       case Some(value) => {
         accounts.delete(value)
         tasks.delete(value)
-        Ok(views.html.formapp.login(request))
+        Ok(views.html.formapp.login("退会処理が正常に終了しました")(request))
       }
 
     }
+  }
 
+  def logout = Action { request =>
+    val session_id: String = request.cookies.get("session-id").map(_.value).getOrElse("")
+    accounts.getAccountIdBySessionId(session_id) match {
+      case None => Ok(views.html.formapp.login("ログインしていません")(request))
+      case Some(value) => {
+        //accounts.delete(value)
+        //tasks.delete(value)
+        accounts.updateSessionID(value, null)
+        Ok(views.html.formapp.login("ログアウトしました")(request))
+      }
+
+    }
   }
 
 }
