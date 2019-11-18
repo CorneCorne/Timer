@@ -54,11 +54,19 @@ class Accounts @Inject()(dbcp: DBConfigProvider)(implicit ec: ExecutionContext) 
     db.run(sql"SELECT account_id FROM #$table WHERE session_id='#$session_id'".as[String].headOption)
   )
 
+  def getAccountBySessionId(session_id: String): Option[Account] = Await.result(
+    db.run(
+      sql"SELECT id, account_id, user_name, account_password,session_id ,session_timestamp FROM #$table WHERE session_id='#$session_id'"
+        .as[Account]
+        .headOption
+    )
+  )
+
   //パスワードの変更
   def updatePass(account: Account): Int = account match {
     case Account(_, account_id, _, account_password, _, _) =>
       Await.result(
-        db.run(sqlu"UPDATE #$table SET account_password=#$account_password WHERE account_id = #$account_id")
+        db.run(sqlu"UPDATE #$table SET account_password='#$account_password' WHERE account_id = '#$account_id'")
       )
   }
 
@@ -71,8 +79,8 @@ class Accounts @Inject()(dbcp: DBConfigProvider)(implicit ec: ExecutionContext) 
   }
 
   //ユーザの退会
-  def delete(accoun_id: String) = Await.result(
-    db.run(sql"DELETE FROM #$table WHERE account_id='#$account_id'")
+  def delete(account_id: String) = Await.result(
+    db.run(sqlu"DELETE FROM #$table WHERE account_id='#$account_id'")
   )
 
 }
