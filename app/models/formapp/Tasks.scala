@@ -30,6 +30,13 @@ class Tasks @Inject()(dbcp: DBConfigProvider)(implicit ec: ExecutionContext) ext
     )
   )
 
+  def getUnfinishedListByAccountId(account_id: String): Seq[Task] = Await.result(
+    db.run(
+      sql"SELECT id , task_id, account_id, title,description, is_done, created_At FROM #$table WHERE account_id='#$account_id' AND is_done=false  ORDER BY id"
+        .as[Task]
+    )
+  )
+
   def getTaskByTaskId(task_id: String): Option[Task] = Await.result(
     db.run(
       sql"SELECT id,task_id, account_id, title,description, is_done, created_At FROM #$table WHERE task_id='#$task_id'"

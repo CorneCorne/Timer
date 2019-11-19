@@ -150,6 +150,19 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
   //Ok(views.html.formapp.login(request))
   }
 
+  def roomPlus(task_num: Int, page_num: Int) = Action { request =>
+    val session_id: String = request.cookies.get("session-id").map(_.value).getOrElse("")
+    accounts.getAccountIdBySessionId(session_id) match {
+      case None => Ok(views.html.formapp.login("ログインしてください")(request))
+      case Some(value) => {
+        val entries = tasks.getListByAccountId(value)
+        Ok(views.html.formapp.roomPlus(entries, task_num, page_num))
+
+      }
+    }
+  //Ok(views.html.formapp.login(request))
+  }
+
   def login = Action { request =>
     Ok(views.html.formapp.login("ログインしましょう")(request)).withSession(request.session)
   }
@@ -215,7 +228,7 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
           case Some(value) => {
             //タスクを正に取得した
             if (task.account_id.equals(value)) {
-              Ok(views.html.formapp.task_entry(task))
+              Ok(views.html.formapp.task_entry(task)(request))
             } else {
               //不正なタスク取得
               NotFound(s"No entry for id=${task_id}")
@@ -253,6 +266,54 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
         }
       }
     }
+  }
+
+  def changeTaskContent(task_id: String) = Action { request =>
+    (for {
+      param       <- request.body.asFormUrlEncoded
+      title       <- param.get("title").flatMap(_.headOption)
+      description <- param.get("description").flatMap(_.headOption)
+    } yield {
+      var task = tasks.getTaskByTaskId(task_id).getOrElse(null)
+      if (task == null) {
+        NotFound(s"No entry for id=${task_id}")
+      } else {
+        val session_id: String = request.cookies.get("session-id").map(_.value).getOrElse("")
+        accounts.getAccountIdBySessionId(session_id) match {
+          case None => {
+            println("失敗")
+            Ok(views.html.formapp.login("ログインしていません")(request))
+          }
+          case Some(value) => {
+            //タスクを正に取得した
+            if (task.account_id.equals(value)) {
+              var new_state_task: Task = Task(task.id, title, description, task.is_done)
+              tasks.save(new_state_task)
+              val entries = tasks.getListByAccountId(value)
+              Ok(views.html.formapp.room(entries))
+            } else {
+              //不正なタスク取得
+              NotFound(s"No entry for id=${task_id}")
+            }
+          }
+        }
+      }
+
+    }).getOrElse[Result](Redirect("/formapp/room"))
+
+  }
+
+  def unfinished = Action { request =>
+    val session_id: String = request.cookies.get("session-id").map(_.value).getOrElse("")
+    accounts.getAccountIdBySessionId(session_id) match {
+      case None => Ok(views.html.formapp.login("ログインしてください")(request))
+      case Some(value) => {
+        println("せっしょんあいでー")
+        val entries = tasks.getUnfinishedListByAccountId(value)
+        Ok(views.html.formapp.room(entries))
+      }
+    }
+  //Ok(views.html.formapp.login(request))
   }
 
   def account = Action { request =>
