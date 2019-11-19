@@ -2,6 +2,7 @@
 
 @import helper._
 @import views.html.formapp.list
+@import scala.util.control.Breaks
 
 
 
@@ -39,10 +40,13 @@
         <th>作成日時</th>
     </tr>
 
-    @for(i <- 1 to task_num){
-        @if(tasks.length > i+(page_num-1)*task_num-1){
-            @entryRow(tasks.seq(i+(page_num-1)*task_num-1),i+(page_num-1)*task_num)
-        }
+    @{val b = new Breaks
+    b.breakable{
+    for(i <- 1 to task_num){
+        if(tasks.length > i+(page_num-1)*task_num-1){
+            entryRow(tasks.seq(i+(page_num-1)*task_num-1),i+(page_num-1)*task_num)
+        }else{b.break}
+    }}
     }
 
 </table>
