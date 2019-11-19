@@ -1,4 +1,4 @@
-@(tasks: Seq[models.formapp.Task])
+@(tasks: Seq[models.formapp.Task],task_num :Int,page_num :Int)
 
 @import helper._
 @import views.html.formapp.list
@@ -39,17 +39,20 @@
         <th>作成日時</th>
     </tr>
 
-
-    @for((obj,i) <- tasks.zipWithIndex) {
-    @entryRow(obj,i)
+    @for(i <- 1 to task_num){
+        @if(tasks.length > i+(page_num-1)*task_num-1){
+            @entryRow(tasks.seq(i+(page_num-1)*task_num-1),i+(page_num-1)*task_num)
+        }
     }
-
-
 
 </table>
 } else {
 <p>登録されたメッセージはありません</p>
 }
+<div>
+@if(page_num > 1){<a href="/formapp/rooms/@task_num/@{page_num-1}">前のページ</a>}
+@if(tasks.length > page_num*task_num){<a href="/formapp/rooms/@task_num/@{page_num+1}">次のページ</a>}
+</div>
 
 }
 
