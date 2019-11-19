@@ -22,10 +22,14 @@ POST     /formapp/try_login   	  controllers.formapp.FormappController.tryLogin
 GET     /formapp/try_login   	  controllers.formapp.FormappController.room
 GET     /formapp/task/:task_id       controllers.formapp.FormappController.taskEntry(task_id: String)
 GET     /formapp/task/change_state/:task_id       controllers.formapp.FormappController.changeTaskState(task_id: String)
+GET     /formapp/rooms/:task_num/:page_num       controllers.formapp.FormappController.roomPlus(task_num: Int,page_num: Int)
+POST /formapp/change_task_content/:task_id controllers.formapp.FormappController.changeTaskContent(task_id: String)
+GET			/formapp/room/unfinished			controllers.formapp.FormappController.unfinished
 GET			/formapp/account			controllers.formapp.FormappController.account
 GET			/formapp/account/withdrawal			controllers.formapp.FormappController.withdraw
 GET			/formapp/account/logout			controllers.formapp.FormappController.logout
 POST			/formapp/account/change_pass			controllers.formapp.FormappController.change_pass
+
 
 # Resources
 GET     /robot.txt                  controllers.Default.notFound
