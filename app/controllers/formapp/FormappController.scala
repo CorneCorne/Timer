@@ -303,6 +303,35 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
 
   }
 
+  def deleteTask(task_id: String) = Action { request =>
+  {
+    var task = tasks.getTaskByTaskId(task_id).getOrElse(null)
+    if (task == null) {
+      NotFound(s"No entry for id=${task_id}")
+    } else {
+      val session_id: String = request.cookies.get("session-id").map(_.value).getOrElse("")
+      accounts.getAccountIdBySessionId(session_id) match {
+        case None => {
+          println("失敗")
+          Ok(views.html.formapp.login("ログインしていません")(request))
+        }
+        case Some(value) => {
+          //タスクを正に取得した
+          if (task.account_id.equals(value)) {
+            var new_state_task: Task = Task(task.id, task.title, task.description, !task.is_done)
+            tasks.delete(task_id)
+            val entries = tasks.getListByAccountId(value)
+            Ok(views.html.formapp.room(entries))
+          } else {
+            //不正なタスク取得
+            NotFound(s"No entry for id=${task_id}")
+          }
+        }
+      }
+    }
+  }
+  }
+
   def unfinished = Action { request =>
     val session_id: String = request.cookies.get("session-id").map(_.value).getOrElse("")
     accounts.getAccountIdBySessionId(session_id) match {
@@ -364,7 +393,7 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
       case None => Ok(views.html.formapp.login("ログインしていません")(request))
       case Some(value) => {
         accounts.delete(value)
-        tasks.delete(value)
+        tasks.deleteAll(value)
         Ok(views.html.formapp.login("退会処理が正常に終了しました")(request))
       }
 
@@ -377,7 +406,7 @@ class FormappController @Inject()(enquetes: Enquetes)(accounts: Accounts)(tasks:
       case None => Ok(views.html.formapp.login("ログインしていません")(request))
       case Some(value) => {
         //accounts.delete(value)
-        //tasks.delete(value)
+        //tasks.deleteAll(value)
         accounts.updateSessionID(value, null)
         Ok(views.html.formapp.login("ログアウトしました")(request))
       }
