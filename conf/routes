@@ -31,6 +31,9 @@ GET			/formapp/account/withdrawal			controllers.formapp.FormappController.withdr
 GET			/formapp/account/logout			controllers.formapp.FormappController.logout
 POST			/formapp/account/change_pass			controllers.formapp.FormappController.change_pass
 
+# Timer
+## Normal
+GET     /timer/home           controllers.timer.TimerController.home
 
 # Resources
 GET     /robot.txt                  controllers.Default.notFound
